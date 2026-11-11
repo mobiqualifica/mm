@@ -1,977 +1,688 @@
-import React, { useState } from 'react';
-import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  PieChart, Pie, Cell 
-} from 'recharts';
-import { 
-  TrendingUp, Users, DollarSign, Target, AlertTriangle, Info, CheckCircle, Plus,
-  LayoutDashboard, Megaphone, Kanban, Sparkles, Moon, Sun, Edit3, DollarSign as RevenueIcon,
-  PieChart as ChartIcon, ShoppingBag, Briefcase, ArrowUpRight, ArrowDownRight, RefreshCw, X
-} from 'lucide-react';
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MetaAds & CRM - Gestão Integrada com Gemini AI</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Tipografia Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- React & ReactDOM -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <!-- Babel -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .bg-custom-dark { background-color: #02153D; }
+    .bg-custom-purple { background-color: #4B227A; }
+    .bg-custom-turq { background-color: #0197AF; }
+    .text-custom-mint { color: #00EED0; }
+    .border-custom-mint { border-color: #00EED0; }
+  </style>
+</head>
+<body class="bg-gray-950 text-white min-h-screen">
+  <div id="root"></div>
 
-const COLUMNS = ['Lead Gerado', 'Qualificação', 'Proposta', 'Fechamento'];
+  <script type="text/babel">
+    const { useState, useEffect } = React;
 
-const INITIAL_CAMPAIGNS = [
-  { 
-    id: '1', 
-    name: 'Campanha Lead Qualificado - Q4', 
-    type: 'Leads', 
-    budget: 3500, 
-    results: 280, 
-    costPerResult: 12.50, 
-    reach: 64000 
-  },
-  { 
-    id: '2', 
-    name: 'Lançamento Produto SaaS', 
-    type: 'Vendas de Produtos', 
-    budget: 5056, 
-    results: 140, 
-    costPerResult: 36.11, 
-    reach: 96100 
-  }
-];
+    const INITIAL_CAMPAIGNS = [
+      { id: '1', name: 'Campanha Lead Qualificado - Q4', type: 'Leads', budget: 5000, spent: 3500, results: 280, costPerResult: 12.50, reach: 64000, status: 'Ativa' },
+      { id: '2', name: 'Lançamento Produto SaaS', type: 'Vendas de Produtos', budget: 8000, spent: 5056, results: 140, costPerResult: 36.11, reach: 96100, status: 'Ativa' }
+    ];
 
-const INITIAL_LEADS = [
-  { id: '101', name: 'Tech Solutions LTDA', status: 'Lead Gerado', campaignId: '1', dealType: 'Serviço', dealValue: 0 },
-  { id: '102', name: 'Grupo Inovação', status: 'Qualificação', campaignId: '1', dealType: 'Serviço', dealValue: 0 },
-  { id: '103', name: 'Clinica Saúde Express', status: 'Proposta', campaignId: '2', dealType: 'Produto', dealValue: 0 },
-  { id: '104', name: 'EducaDigital Corp', status: 'Fechamento', campaignId: '2', dealType: 'Serviço', dealValue: 4500 },
-  { id: '105', name: 'Mercado Varejo Online', status: 'Fechamento', campaignId: '2', dealType: 'Produto', dealValue: 3200 },
-];
+    const INITIAL_LEADS = [
+      { id: '101', name: 'Tech Solutions LTDA', status: 'Lead Gerado', campaignId: '1', dealType: 'Serviço', dealValue: 0, phone: '(31) 99887-1122', email: 'contato@techsolutions.com' },
+      { id: '102', name: 'Grupo Inovação', status: 'Qualificação', campaignId: '1', dealType: 'Serviço', dealValue: 0, phone: '(31) 98765-4321', email: 'vendas@grupoinovacao.com' },
+      { id: '103', name: 'Clínica Saúde Express', status: 'Proposta', campaignId: '2', dealType: 'Produto', dealValue: 0, phone: '(31) 97654-3210', email: 'adm@saudeexpress.com' },
+      { id: '104', name: 'EducaDigital Corp', status: 'Fechamento', campaignId: '2', dealType: 'Produto', dealValue: 3200, phone: '(31) 96543-2109', email: 'diretoria@educadigital.com' }
+    ];
 
-export default function App() {
-  // Estado Global
-  const [darkMode, setDarkMode] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview'); // overview, campaigns, crm, insights
-  const [campaigns, setCampaigns] = useState(INITIAL_CAMPAIGNS);
-  const [leads, setLeads] = useState(INITIAL_LEADS);
+    function App() {
+      const [darkMode, setDarkMode] = useState(true);
+      const [activeTab, setActiveTab] = useState('overview');
+      const [campaigns, setCampaigns] = useState(INITIAL_CAMPAIGNS);
+      const [leads, setLeads] = useState(INITIAL_LEADS);
 
-  // Estados de Modais e Edição
-  const [editingCampaign, setEditingCampaign] = useState(null);
-  const [closingLeadModal, setClosingLeadModal] = useState(null); // Lead sendo movido para Fechamento
-  
-  // Forms
-  const [newCampaign, setNewCampaign] = useState({
-    name: '', type: 'Leads', budget: '', results: '', costPerResult: '', reach: ''
-  });
-  const [newLead, setNewLead] = useState({ name: '', campaignId: '' });
+      // Modais
+      const [editingCampaign, setEditingCampaign] = useState(null);
+      const [inFlightCampaign, setInFlightCampaign] = useState(null);
+      const [editingLead, setEditingLead] = useState(null);
+      const [closingLeadModal, setClosingLeadModal] = useState(null);
 
-  // Modais inputs
-  const [closingDealData, setClosingDealData] = useState({ dealType: 'Serviço', dealValue: '' });
+      // Forms
+      const [newCampaign, setNewCampaign] = useState({ name: '', type: 'Leads', budget: '', spent: '', results: '', reach: '' });
+      const [newLead, setNewLead] = useState({ name: '', campaignId: '1', dealType: 'Serviço', phone: '', email: '' });
+      const [closingData, setClosingData] = useState({ dealType: 'Produto', dealValue: '' });
 
-  // KPIs Globais em Tempo Real
-  const totalBudget = campaigns.reduce((acc, curr) => acc + Number(curr.budget || 0), 0);
-  const totalReach = campaigns.reduce((acc, curr) => acc + Number(curr.reach || 0), 0);
-  const totalResults = campaigns.reduce((acc, curr) => acc + Number(curr.results || 0), 0);
-  const avgCostPerResult = totalResults > 0 ? (totalBudget / totalResults) : 0;
-  
-  const closedLeadsList = leads.filter(l => l.status === 'Fechamento');
-  const closedCount = closedLeadsList.length;
-  const totalRevenue = closedLeadsList.reduce((acc, curr) => acc + Number(curr.dealValue || 0), 0);
-  const netProfit = totalRevenue - totalBudget;
-  const roasPerReal = totalBudget > 0 ? (totalRevenue / totalBudget) : 0;
-  const crmConversionRate = leads.length > 0 ? ((closedCount / leads.length) * 100) : 0;
-
-  // Handlers para Campanhas
-  const handleAddCampaign = (e) => {
-    e.preventDefault();
-    if (!newCampaign.name || !newCampaign.budget) return;
-    
-    setCampaigns([...campaigns, { 
-      id: Date.now().toString(),
-      name: newCampaign.name,
-      type: newCampaign.type,
-      budget: Number(newCampaign.budget),
-      results: Number(newCampaign.results || 0),
-      costPerResult: Number(newCampaign.costPerResult || 0),
-      reach: Number(newCampaign.reach || 0)
-    }]);
-    
-    setNewCampaign({ name: '', type: 'Leads', budget: '', results: '', costPerResult: '', reach: '' });
-  };
-
-  const handleUpdateCampaignInFlight = (e) => {
-    e.preventDefault();
-    if (!editingCampaign) return;
-
-    setCampaigns(campaigns.map(c => c.id === editingCampaign.id ? {
-      ...c,
-      reach: Number(editingCampaign.reach),
-      results: Number(editingCampaign.results),
-      budget: Number(editingCampaign.budget),
-      costPerResult: Number(editingCampaign.results) > 0 
-        ? Number((Number(editingCampaign.budget) / Number(editingCampaign.results)).toFixed(2))
-        : c.costPerResult
-    } : c));
-
-    setEditingCampaign(null);
-  };
-
-  // Handlers para CRM
-  const handleAddLead = (e) => {
-    e.preventDefault();
-    if (!newLead.name) return;
-    setLeads([...leads, { 
-      id: Date.now().toString(), 
-      name: newLead.name, 
-      status: 'Lead Gerado',
-      campaignId: newLead.campaignId || (campaigns[0]?.id || ''),
-      dealType: 'Serviço',
-      dealValue: 0
-    }]);
-    setNewLead({ name: '', campaignId: '' });
-  };
-
-  const handleMoveLeadStatus = (leadId, targetStatus) => {
-    const targetLead = leads.find(l => l.id === leadId);
-    if (!targetLead) return;
-
-    if (targetStatus === 'Fechamento' && targetLead.status !== 'Fechamento') {
-      // Abre modal para capturar receita
-      setClosingLeadModal(targetLead);
-      setClosingDealData({ dealType: targetLead.dealType || 'Serviço', dealValue: targetLead.dealValue || '' });
-    } else {
-      setLeads(leads.map(l => l.id === leadId ? { ...l, status: targetStatus } : l));
-    }
-  };
-
-  const handleConfirmClosingDeal = (e) => {
-    e.preventDefault();
-    if (!closingLeadModal) return;
-
-    setLeads(leads.map(l => l.id === closingLeadModal.id ? {
-      ...l,
-      status: 'Fechamento',
-      dealType: closingDealData.dealType,
-      dealValue: Number(closingDealData.dealValue || 0)
-    } : l));
-
-    setClosingLeadModal(null);
-  };
-
-  // Drag & Drop
-  const handleDragStart = (e, id) => {
-    e.dataTransfer.setData('text/plain', id);
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-  };
-
-  const handleDrop = (e, targetStatus) => {
-    e.preventDefault();
-    const leadId = e.dataTransfer.getData('text/plain');
-    if (leadId) {
-      handleMoveLeadStatus(leadId, targetStatus);
-    }
-  };
-
-  // Motor Canva AI Insights
-  const generateAIInsights = () => {
-    const list = [];
-    
-    if (campaigns.length === 0) {
-      return [{ type: 'info', title: 'Aguardando Dados', text: 'Cadastre ao menos uma campanha para ativar o Canva AI Insights.' }];
-    }
-
-    if (netProfit > 0) {
-      list.push({
-        type: 'success',
-        title: 'Retorno Líquido Positivo',
-        text: `Operação lucrativa! Para cada R$ 1,00 investido em anúncios, o ecossistema retornou R$ ${roasPerReal.toFixed(2)}. O lucro líquido atual é de R$ ${netProfit.toLocaleString('pt-BR', {minimumFractionDigits: 2})}.`
-      });
-    } else {
-      list.push({
-        type: 'warning',
-        title: 'Operação abaixo do Breakeven',
-        text: `A receita total (R$ ${totalRevenue.toLocaleString()}) ainda não cobriu o investimento em mídia (R$ ${totalBudget.toLocaleString()}). Foque no fechamento de propostas abertas no CRM.`
-      });
-    }
-
-    if (crmConversionRate < 20 && leads.length > 3) {
-      list.push({
-        type: 'warning',
-        title: 'Gargalo no CRM Detectado',
-        text: `Taxa de conversão de apenas ${crmConversionRate.toFixed(1)}%. Há uma concentração de leads estagnados nas etapas de Qualificação ou Proposta.`
-      });
-    } else {
-      list.push({
-        type: 'success',
-        title: 'Eficiência Comercial',
-        text: `Taxa de conversão sólida em ${crmConversionRate.toFixed(1)}%. As campanhas estão alimentando o funil com leads com alto perfil de compra.`
-      });
-    }
-
-    if (avgCostPerResult > 40) {
-      list.push({
-        type: 'info',
-        title: 'Alerta de Custo de Mídia',
-        text: `O Custo Médio por Resultado está em R$ ${avgCostPerResult.toFixed(2)}. Considere otimizar os criativos e a segmentação de público.`
-      });
-    }
-
-    return list;
-  };
-
-  const aiInsights = generateAIInsights();
-
-  // Dados para gráficos
-  const chartColors = ['#0197AF', '#00EED0', '#4B227A', '#02153D'];
-
-  const leadsByStatusData = COLUMNS.map(col => ({
-    name: col,
-    quantidade: leads.filter(l => l.status === col).length
-  }));
-
-  // Render Theme Styles
-  const bgMain = darkMode ? 'bg-[#0B1120] text-gray-100' : 'bg-gray-50 text-gray-900';
-  const bgCard = darkMode ? 'bg-[#131C31] border-[#1E2D4A]' : 'bg-white border-gray-200';
-  const sidebarBg = 'bg-[#02153D] text-white';
-
-  return (
-    <div className={`min-h-screen flex flex-col md:flex-row font-sans ${bgMain} transition-colors duration-200`}>
+      // Recálculos de KPIs Globais em Tempo Real
+      const totalBudgetSpent = campaigns.reduce((acc, c) => acc + Number(c.spent || 0), 0);
+      const totalReach = campaigns.reduce((acc, c) => acc + Number(c.reach || 0), 0);
+      const totalResults = campaigns.reduce((acc, c) => acc + Number(c.results || 0), 0);
+      const avgCostPerResult = totalResults > 0 ? (totalBudgetSpent / totalResults) : 0;
       
-      {/* SIDEBAR NAVEGAÇÃO */}
-      <aside className={`w-full md:w-64 ${sidebarBg} flex flex-col justify-between p-4 shadow-xl z-20`}>
-        <div>
-          {/* Logo / Title */}
-          <div className="flex items-center gap-3 px-2 py-4 border-b border-blue-900/60 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#0197AF] to-[#00EED0] flex items-center justify-center shadow-lg">
-              <Megaphone className="w-5 h-5 text-[#02153D]" />
-            </div>
-            <div>
-              <h1 className="font-extrabold text-base tracking-tight text-white leading-none">MetaAds & CRM</h1>
-              <span className="text-xs text-[#00EED0] font-medium">Gestão Integrada</span>
-            </div>
-          </div>
+      const closedLeads = leads.filter(l => l.status === 'Fechamento');
+      const crmConversionRate = leads.length > 0 ? ((closedLeads.length / leads.length) * 100) : 0;
+      const totalRevenue = closedLeads.reduce((acc, l) => acc + Number(l.dealValue || 0), 0);
+      const netProfit = totalRevenue - totalBudgetSpent;
+      const roasPerReal = totalBudgetSpent > 0 ? (totalRevenue / totalBudgetSpent) : 0;
 
-          {/* Navigation Menu */}
-          <nav className="space-y-2">
-            <NavItem 
-              active={activeTab === 'overview'} 
-              onClick={() => setActiveTab('overview')} 
-              icon={LayoutDashboard} 
-              label="Visão Geral" 
-            />
-            <NavItem 
-              active={activeTab === 'campaigns'} 
-              onClick={() => setActiveTab('campaigns')} 
-              icon={Megaphone} 
-              label="Campanhas" 
-              badge={campaigns.length}
-            />
-            <NavItem 
-              active={activeTab === 'crm'} 
-              onClick={() => setActiveTab('crm')} 
-              icon={Kanban} 
-              label="CRM Kanban" 
-              badge={leads.length}
-            />
-            <NavItem 
-              active={activeTab === 'insights'} 
-              onClick={() => setActiveTab('insights')} 
-              icon={Sparkles} 
-              label="AI Insights" 
-            />
-          </nav>
-        </div>
-
-        {/* Theme Toggle & Footer */}
-        <div className="pt-4 border-t border-blue-900/60 space-y-3">
-          <button 
-            onClick={() => setDarkMode(!darkMode)}
-            className="w-full flex items-center justify-between p-3 rounded-xl bg-blue-950/50 hover:bg-blue-900/60 text-gray-200 transition-all text-sm font-semibold border border-blue-800/40"
-          >
-            <span className="flex items-center gap-2">
-              {darkMode ? <Sun className="w-4 h-4 text-[#00EED0]" /> : <Moon className="w-4 h-4 text-[#0197AF]" />}
-              {darkMode ? 'Modo Claro' : 'Modo Escuro'}
-            </span>
-            <span className="text-xs bg-blue-900 px-2 py-0.5 rounded text-gray-300">
-              {darkMode ? 'DARK' : 'LIGHT'}
-            </span>
-          </button>
-        </div>
-      </aside>
-
-      {/* ÁREA PRINCIPAL */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+      // Handlers de Campanhas
+      const handleAddCampaign = (e) => {
+        e.preventDefault();
+        if (!newCampaign.name || !newCampaign.budget) return;
+        const spentVal = Number(newCampaign.spent || 0);
+        const resVal = Number(newCampaign.results || 0);
+        const cpr = resVal > 0 ? spentVal / resVal : 0;
         
-        {/* HEADER TOP BAR */}
-        <header className={`px-6 py-4 border-b ${darkMode ? 'border-gray-800 bg-[#0E172A]' : 'border-gray-200 bg-white'} flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sticky top-0 z-10 shadow-sm`}>
-          <div>
-            <h2 className="text-xl font-bold tracking-tight">
-              {activeTab === 'overview' && 'Painel de Controle e Visão Geral'}
-              {activeTab === 'campaigns' && 'Gestão de Campanhas Meta Ads'}
-              {activeTab === 'crm' && 'Pipeline de Vendas CRM (Kanban)'}
-              {activeTab === 'insights' && 'Inteligência Canva AI Insights'}
-            </h2>
-            <p className="text-xs text-gray-400 font-medium mt-0.5">
-              Métricas atualizadas em tempo real com base no tráfego e conversões do CRM.
-            </p>
-          </div>
+        const item = {
+          id: Date.now().toString(),
+          name: newCampaign.name,
+          type: newCampaign.type,
+          budget: Number(newCampaign.budget),
+          spent: spentVal,
+          results: resVal,
+          costPerResult: cpr,
+          reach: Number(newCampaign.reach || 0),
+          status: 'Ativa'
+        };
+        setCampaigns([...campaigns, item]);
+        setNewCampaign({ name: '', type: 'Leads', budget: '', spent: '', results: '', reach: '' });
+      };
 
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-[#0197AF]/15 text-[#0197AF] border border-[#0197AF]/30 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#00EED0] animate-pulse"></span>
-              Sistema Operacional Ativo
-            </span>
-          </div>
-        </header>
+      const handleUpdateInFlight = (e) => {
+        e.preventDefault();
+        if (!inFlightCampaign) return;
+        setCampaigns(campaigns.map(c => {
+          if (c.id === inFlightCampaign.id) {
+            const spent = Number(inFlightCampaign.spent || 0);
+            const results = Number(inFlightCampaign.results || 0);
+            const cpr = results > 0 ? spent / results : 0;
+            return { ...c, spent, results, reach: Number(inFlightCampaign.reach || 0), costPerResult: cpr };
+          }
+          return c;
+        }));
+        setInFlightCampaign(null);
+      };
 
-        {/* DASHBOARDS FIXOS NO TOPO (GRADE SIMÉTRICA DE 6 CARDS DE KPIS) */}
-        <section className="p-6 pb-2">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-            
-            <KPICard 
-              title="Orçamento Consumido"
-              value={`R$ ${totalBudget.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`}
-              subtitle="Investimento Mídia"
-              icon={DollarSign}
-              darkMode={darkMode}
-            />
+      const handleSaveEditCampaign = (e) => {
+        e.preventDefault();
+        if (!editingCampaign) return;
+        setCampaigns(campaigns.map(c => c.id === editingCampaign.id ? editingCampaign : c));
+        setEditingCampaign(null);
+      };
 
-            <KPICard 
-              title="Alcance Total"
-              value={totalReach.toLocaleString('pt-BR')}
-              subtitle="Impressões Únicas"
-              icon={Users}
-              darkMode={darkMode}
-            />
+      const handleDeleteCampaign = (id) => {
+        if (confirm('Deseja realmente excluir esta campanha?')) {
+          setCampaigns(campaigns.filter(c => c.id !== id));
+        }
+      };
 
-            <KPICard 
-              title="Custo / Resultado"
-              value={`R$ ${avgCostPerResult.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`}
-              subtitle="Custo Médio Mídia"
-              icon={Target}
-              darkMode={darkMode}
-            />
+      // Handlers de CRM Kanban
+      const handleAddLead = (e) => {
+        e.preventDefault();
+        if (!newLead.name) return;
+        const item = {
+          id: Date.now().toString(),
+          name: newLead.name,
+          status: 'Lead Gerado',
+          campaignId: newLead.campaignId,
+          dealType: newLead.dealType,
+          dealValue: 0,
+          phone: newLead.phone,
+          email: newLead.email
+        };
+        setLeads([...leads, item]);
+        setNewLead({ name: '', campaignId: '1', dealType: 'Serviço', phone: '', email: '' });
+      };
 
-            <KPICard 
-              title="Taxa Conversão CRM"
-              value={`${crmConversionRate.toFixed(1)}%`}
-              subtitle={`${closedCount} de ${leads.length} leads`}
-              icon={TrendingUp}
-              darkMode={darkMode}
-            />
+      const handleMoveLead = (leadId, targetStatus) => {
+        const lead = leads.find(l => l.id === leadId);
+        if (!lead) return;
+        if (targetStatus === 'Fechamento' && lead.status !== 'Fechamento') {
+          setClosingLeadModal(lead);
+          setClosingData({ dealType: lead.dealType || 'Produto', dealValue: lead.dealValue || '' });
+        } else {
+          setLeads(leads.map(l => l.id === leadId ? { ...l, status: targetStatus } : l));
+        }
+      };
 
-            <KPICard 
-              title="Receita Total"
-              value={`R$ ${totalRevenue.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`}
-              subtitle="Vendas Fechadas"
-              icon={RevenueIcon}
-              highlight
-              darkMode={darkMode}
-            />
+      const handleConfirmClosing = (e) => {
+        e.preventDefault();
+        if (!closingLeadModal) return;
+        setLeads(leads.map(l => l.id === closingLeadModal.id ? {
+          ...l,
+          status: 'Fechamento',
+          dealType: closingData.dealType,
+          dealValue: Number(closingData.dealValue || 0)
+        } : l));
+        setClosingLeadModal(null);
+      };
 
-            <KPICard 
-              title="Lucro Líquido"
-              value={`R$ ${netProfit.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`}
-              subtitle={netProfit >= 0 ? 'Lucro Positivo' : 'Saldo Negativo'}
-              icon={netProfit >= 0 ? ArrowUpRight : ArrowDownRight}
-              statusColor={netProfit >= 0 ? 'text-[#00EED0]' : 'text-red-400'}
-              darkMode={darkMode}
-            />
+      const handleDeleteLead = (id) => {
+        if (confirm('Deseja excluir este lead?')) {
+          setLeads(leads.filter(l => l.id !== id));
+        }
+      };
 
-          </div>
+      const handleSaveEditLead = (e) => {
+        e.preventDefault();
+        if (!editingLead) return;
+        setLeads(leads.map(l => l.id === editingLead.id ? editingLead : l));
+        setEditingLead(null);
+      };
 
-          {/* Seta de Destaque ROAS Humanizado */}
-          <div className={`mt-3 p-3 rounded-xl border flex flex-col sm:flex-row items-center justify-between gap-2 ${darkMode ? 'bg-[#02153D]/60 border-[#0197AF]/40' : 'bg-blue-50 border-blue-200'}`}>
-            <div className="flex items-center gap-2">
-              <span className="p-1.5 rounded-lg bg-[#0197AF] text-white">
-                <Sparkles className="w-4 h-4" />
-              </span>
-              <span className="text-xs font-semibold text-gray-300">
-                Performance Financeira do Investimento (ROAS):
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-gray-400">Retorno Calculado:</span>
-              <span className="text-sm font-extrabold text-[#00EED0] bg-[#02153D] px-3 py-1 rounded-lg border border-[#00EED0]/40">
-                R$ {roasPerReal.toFixed(2)} por R$ 1,00 investido
-              </span>
-            </div>
-          </div>
-        </section>
-
-        {/* CONTEÚDO DAS ABAS */}
-        <section className="p-6 pt-4 flex-1">
-          
-          {/* TAB: VISÃO GERAL */}
-          {activeTab === 'overview' && (
-            <div className="space-y-6">
-              
-              {/* Gráficos */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                
-                {/* Desempenho por Campanha */}
-                <div className={`lg:col-span-2 p-5 rounded-2xl border ${bgCard} shadow-sm`}>
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="font-bold text-base flex items-center gap-2">
-                      <ChartIcon className="w-5 h-5 text-[#0197AF]" /> Volume de Resultados por Campanha
-                    </h3>
-                    <span className="text-xs text-gray-400 font-medium">Meta Ads Direct Sync</span>
-                  </div>
-                  <div className="h-72 w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={campaigns} margin={{ top: 10, right: 30, left: 0, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? "#1E2D4A" : "#E5E7EB"} />
-                        <XAxis dataKey="name" stroke={darkMode ? "#94A3B8" : "#4B5563"} tick={{fontSize: 12}} />
-                        <YAxis stroke={darkMode ? "#94A3B8" : "#4B5563"} tick={{fontSize: 12}} />
-                        <Tooltip 
-                          contentStyle={{ 
-                            backgroundColor: darkMode ? '#02153D' : '#FFFFFF', 
-                            borderColor: '#0197AF',
-                            borderRadius: '12px',
-                            color: darkMode ? '#FFF' : '#000',
-                            fontWeight: 'bold'
-                          }} 
-                        />
-                        <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
-                        <Bar dataKey="results" name="Resultados (Conversões)" fill="#0197AF" radius={[6, 6, 0, 0]} />
-                        <Bar dataKey="budget" name="Orçamento Total (R$)" fill="#4B227A" radius={[6, 6, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
+      return (
+        <div className={`flex min-h-screen ${darkMode ? 'bg-gray-950 text-white' : 'bg-gray-100 text-gray-900'}`}>
+          {/* SIDEBAR */}
+          <aside className="w-64 bg-custom-dark p-6 flex flex-col justify-between border-r border-gray-800">
+            <div>
+              <div className="flex items-center gap-3 mb-8">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#0197AF] to-[#00EED0] flex items-center justify-center font-bold text-black text-xl">
+                  M
                 </div>
-
-                {/* Funil de Leads no CRM */}
-                <div className={`p-5 rounded-2xl border ${bgCard} shadow-sm flex flex-col justify-between`}>
-                  <div>
-                    <h3 className="font-bold text-base mb-4 flex items-center gap-2">
-                      <Kanban className="w-5 h-5 text-[#00EED0]" /> Distribuição do CRM
-                    </h3>
-                    <div className="h-56 w-full">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={leadsByStatusData}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={50}
-                            outerRadius={80}
-                            paddingAngle={5}
-                            dataKey="quantidade"
-                          >
-                            {leadsByStatusData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={chartColors[index % chartColors.length]} />
-                            ))}
-                          </Pie>
-                          <Tooltip 
-                            contentStyle={{ 
-                              backgroundColor: darkMode ? '#02153D' : '#FFFFFF', 
-                              borderColor: '#0197AF',
-                              borderRadius: '8px'
-                            }} 
-                          />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2 mt-2">
-                    {leadsByStatusData.map((item, idx) => (
-                      <div key={item.name} className="flex justify-between items-center text-xs font-semibold">
-                        <span className="flex items-center gap-2">
-                          <span className="w-3 h-3 rounded-full" style={{ backgroundColor: chartColors[idx % chartColors.length] }}></span>
-                          {item.name}
-                        </span>
-                        <span className="px-2 py-0.5 rounded bg-gray-800 text-gray-200">{item.quantidade} leads</span>
-                      </div>
-                    ))}
-                  </div>
+                <div>
+                  <h1 className="font-bold text-lg text-white leading-tight">MetaAds & CRM</h1>
+                  <p className="text-xs text-custom-mint">Gestão Integrada</p>
                 </div>
-
               </div>
 
-              {/* Canva AI Insights Widget Preview */}
-              <div className={`p-5 rounded-2xl border ${darkMode ? 'bg-[#02153D]/80 border-[#0197AF]/40' : 'bg-blue-50/70 border-blue-200'}`}>
-                <div className="flex justify-between items-center mb-3">
-                  <h3 className="font-bold text-base text-[#00EED0] flex items-center gap-2">
-                    <Sparkles className="w-5 h-5" /> Widget Canva AI Insights
-                  </h3>
-                  <button 
-                    onClick={() => setActiveTab('insights')} 
-                    className="text-xs font-bold text-[#0197AF] hover:underline"
+              <nav className="space-y-2">
+                {[
+                  { id: 'overview', label: 'Visão Geral', icon: '📊' },
+                  { id: 'campaigns', label: 'Campanhas', icon: '📢', badge: campaigns.length },
+                  { id: 'crm', label: 'CRM Kanban', icon: '📋', badge: leads.length },
+                  { id: 'insights', label: 'Gemini AI Insights', icon: '✨' }
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-lg font-medium text-sm transition-all ${
+                      activeTab === tab.id ? 'bg-[#0197AF] text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800/50 hover:text-white'
+                    }`}
                   >
-                    Ver Relatório Completo &rarr;
+                    <span className="flex items-center gap-3">
+                      <span>{tab.icon}</span>
+                      {tab.label}
+                    </span>
+                    {tab.badge !== undefined && (
+                      <span className="text-xs bg-gray-900 px-2 py-0.5 rounded-full text-custom-mint font-semibold">
+                        {tab.badge}
+                      </span>
+                    )}
                   </button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {aiInsights.slice(0, 2).map((item, idx) => (
-                    <div key={idx} className={`p-4 rounded-xl border ${darkMode ? 'bg-[#131C31] border-gray-800' : 'bg-white border-gray-200'}`}>
-                      <h4 className="font-bold text-sm text-[#00EED0] mb-1">{item.title}</h4>
-                      <p className="text-xs text-gray-300">{item.text}</p>
-                    </div>
-                  ))}
-                </div>
+                ))}
+              </nav>
+            </div>
+
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className="flex items-center justify-between px-4 py-3 rounded-lg border border-gray-700 hover:bg-gray-800 text-sm font-medium transition"
+            >
+              <span>{darkMode ? '🌙 Modo Escuro' : '☀️ Modo Claro'}</span>
+              <span className="text-xs text-custom-mint font-bold">{darkMode ? 'ON' : 'OFF'}</span>
+            </button>
+          </aside>
+
+          {/* ÁREA PRINCIPAL */}
+          <main className="flex-1 p-8 overflow-y-auto">
+            {/* TOP BAR - 6 KPIS FIXOS */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+              <div className="bg-custom-dark border border-gray-800 p-4 rounded-xl">
+                <p className="text-xs text-gray-400 font-medium">Orçamento Consumido</p>
+                <p className="text-xl font-bold text-white mt-1">R$ {totalBudgetSpent.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
               </div>
 
+              <div className="bg-custom-dark border border-gray-800 p-4 rounded-xl">
+                <p className="text-xs text-gray-400 font-medium">Alcance Total</p>
+                <p className="text-xl font-bold text-white mt-1">{totalReach.toLocaleString('pt-BR')}</p>
+              </div>
+
+              <div className="bg-custom-dark border border-gray-800 p-4 rounded-xl">
+                <p className="text-xs text-gray-400 font-medium">Custo / Resultado</p>
+                <p className="text-xl font-bold text-custom-mint mt-1">R$ {avgCostPerResult.toFixed(2)}</p>
+              </div>
+
+              <div className="bg-custom-dark border border-gray-800 p-4 rounded-xl">
+                <p className="text-xs text-gray-400 font-medium">Conversão CRM</p>
+                <p className="text-xl font-bold text-white mt-1">{crmConversionRate.toFixed(1)}%</p>
+              </div>
+
+              <div className="bg-custom-dark border border-gray-800 p-4 rounded-xl">
+                <p className="text-xs text-gray-400 font-medium">Receita Total</p>
+                <p className="text-xl font-bold text-white mt-1">R$ {totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+              </div>
+
+              <div className={`p-4 rounded-xl border ${netProfit >= 0 ? 'bg-custom-dark border-[#00EED0]' : 'bg-red-950/40 border-red-500'}`}>
+                <p className="text-xs text-gray-400 font-medium">Lucro Líquido / ROAS</p>
+                <p className="text-lg font-bold text-custom-mint mt-1">R$ {netProfit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                <p className="text-xs font-semibold text-gray-300">R$ {roasPerReal.toFixed(2)} por R$ 1,00</p>
+              </div>
             </div>
-          )}
 
-          {/* TAB: CAMPANHAS */}
-          {activeTab === 'campaigns' && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              
-              {/* Formulário Cadastro de Campanha */}
-              <div className={`lg:col-span-1 p-6 rounded-2xl border ${bgCard} shadow-sm h-fit`}>
-                <h3 className="text-base font-bold mb-4 pb-2 border-b border-gray-800 flex items-center gap-2">
-                  <Plus className="w-5 h-5 text-[#0197AF]" /> Nova Campanha Meta Ads
-                </h3>
-                
-                <form onSubmit={handleAddCampaign} className="space-y-4">
-                  <InputField 
-                    label="Nome da Campanha" 
-                    placeholder="Ex: Lançamento Verão 2026"
-                    value={newCampaign.name} 
-                    onChange={(e) => setNewCampaign({...newCampaign, name: e.target.value})} 
-                    required 
-                    darkMode={darkMode}
-                  />
-
-                  <div>
-                    <label className={`block text-xs font-bold mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                      Objetivo / Tipo de Campanha
-                    </label>
-                    <select 
-                      value={newCampaign.type}
-                      onChange={(e) => setNewCampaign({...newCampaign, type: e.target.value})}
-                      className={`w-full p-2.5 rounded-xl text-sm font-semibold border outline-none ${
-                        darkMode ? 'bg-[#0B1120] border-gray-700 text-white focus:border-[#0197AF]' : 'bg-white border-gray-300 text-gray-900'
-                      }`}
-                    >
-                      <option value="Leads">Leads (Captação)</option>
-                      <option value="Views">Views (Vídeo/Alcance)</option>
-                      <option value="Cliques">Cliques (Tráfego)</option>
-                      <option value="Vendas de Produtos">Vendas de Produtos</option>
-                      <option value="Vendas de Serviços">Vendas de Serviços</option>
-                    </select>
+            {/* CONTEÚDO DAS ABAS */}
+            {activeTab === 'overview' && (
+              <div className="space-y-6">
+                <h2 className="text-2xl font-bold">Visão Geral do Ecossistema</h2>
+                <div className="bg-custom-dark border border-gray-800 rounded-xl p-6">
+                  <h3 className="text-lg font-bold mb-4 text-custom-mint">Campanhas Ativas & Métricas Parciais</h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm">
+                      <thead className="border-b border-gray-800 text-gray-400">
+                        <tr>
+                          <th className="py-3 px-4">Nome</th>
+                          <th className="py-3 px-4">Objetivo</th>
+                          <th className="py-3 px-4">Gasto</th>
+                          <th className="py-3 px-4">Resultados</th>
+                          <th className="py-3 px-4">CPR</th>
+                          <th className="py-3 px-4">Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-800">
+                        {campaigns.map(c => (
+                          <tr key={c.id} className="hover:bg-gray-800/40">
+                            <td className="py-3 px-4 font-semibold">{c.name}</td>
+                            <td className="py-3 px-4 text-gray-300">{c.type}</td>
+                            <td className="py-3 px-4 font-bold text-white">R$ {Number(c.spent).toFixed(2)}</td>
+                            <td className="py-3 px-4 text-custom-mint font-bold">{c.results}</td>
+                            <td className="py-3 px-4">R$ {Number(c.costPerResult).toFixed(2)}</td>
+                            <td className="py-3 px-4 flex gap-2">
+                              <button onClick={() => setInFlightCampaign(c)} className="bg-[#0197AF] px-2 py-1 rounded text-xs text-white hover:opacity-90">
+                                ⚡ Parcial
+                              </button>
+                              <button onClick={() => setEditingCampaign(c)} className="bg-gray-700 px-2 py-1 rounded text-xs hover:bg-gray-600">
+                                ✏️
+                              </button>
+                              <button onClick={() => handleDeleteCampaign(c.id)} className="bg-red-900/60 px-2 py-1 rounded text-xs text-red-300 hover:bg-red-800">
+                                🗑️
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
+                </div>
+              </div>
+            )}
 
-                  <InputField 
-                    label="Orçamento Total (R$)" 
-                    type="number" 
-                    placeholder="Ex: 2500"
-                    value={newCampaign.budget} 
-                    onChange={(e) => setNewCampaign({...newCampaign, budget: e.target.value})} 
-                    required 
-                    darkMode={darkMode}
+            {activeTab === 'campaigns' && (
+              <div className="space-y-6">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-2xl font-bold">Gestão de Campanhas Meta Ads</h2>
+                </div>
+
+                {/* Cadastrar Nova Campanha */}
+                <form onSubmit={handleAddCampaign} className="bg-custom-dark border border-gray-800 rounded-xl p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <h3 className="col-span-full text-lg font-bold text-custom-mint mb-2">➕ Nova Campanha</h3>
+                  <input
+                    type="text"
+                    placeholder="Nome da Campanha"
+                    value={newCampaign.name}
+                    onChange={e => setNewCampaign({ ...newCampaign, name: e.target.value })}
+                    className="bg-gray-900 border border-gray-700 rounded-lg p-3 text-sm"
+                    required
                   />
-
-                  <InputField 
-                    label="Resultados Iniciais (Opcional)" 
-                    type="number" 
-                    placeholder="Ex: 50"
-                    value={newCampaign.results} 
-                    onChange={(e) => setNewCampaign({...newCampaign, results: e.target.value})} 
-                    darkMode={darkMode}
-                  />
-
-                  <InputField 
-                    label="Alcance Estimado/Inicial" 
-                    type="number" 
-                    placeholder="Ex: 30000"
-                    value={newCampaign.reach} 
-                    onChange={(e) => setNewCampaign({...newCampaign, reach: e.target.value})} 
-                    darkMode={darkMode}
-                  />
-
-                  <button 
-                    type="submit" 
-                    className="w-full mt-2 py-3 px-4 rounded-xl font-extrabold text-sm text-[#02153D] bg-gradient-to-r from-[#0197AF] to-[#00EED0] hover:opacity-90 transition-all shadow-md"
+                  <select
+                    value={newCampaign.type}
+                    onChange={e => setNewCampaign({ ...newCampaign, type: e.target.value })}
+                    className="bg-gray-900 border border-gray-700 rounded-lg p-3 text-sm"
                   >
-                    Salvar e Ativar Campanha
+                    <option value="Leads">Leads</option>
+                    <option value="Views">Views</option>
+                    <option value="Cliques">Cliques</option>
+                    <option value="Vendas de Produtos">Vendas de Produtos</option>
+                    <option value="Vendas de Serviços">Vendas de Serviços</option>
+                  </select>
+                  <input
+                    type="number"
+                    placeholder="Orçamento Total (R$)"
+                    value={newCampaign.budget}
+                    onChange={e => setNewCampaign({ ...newCampaign, budget: e.target.value })}
+                    className="bg-gray-900 border border-gray-700 rounded-lg p-3 text-sm"
+                    required
+                  />
+                  <input
+                    type="number"
+                    placeholder="Valor Já Gasto (R$)"
+                    value={newCampaign.spent}
+                    onChange={e => setNewCampaign({ ...newCampaign, spent: e.target.value })}
+                    className="bg-gray-900 border border-gray-700 rounded-lg p-3 text-sm"
+                  />
+                  <input
+                    type="number"
+                    placeholder="Resultados Obtidos"
+                    value={newCampaign.results}
+                    onChange={e => setNewCampaign({ ...newCampaign, results: e.target.value })}
+                    className="bg-gray-900 border border-gray-700 rounded-lg p-3 text-sm"
+                  />
+                  <input
+                    type="number"
+                    placeholder="Alcance Acumulado"
+                    value={newCampaign.reach}
+                    onChange={e => setNewCampaign({ ...newCampaign, reach: e.target.value })}
+                    className="bg-gray-900 border border-gray-700 rounded-lg p-3 text-sm"
+                  />
+                  <button type="submit" className="col-span-full bg-[#0197AF] hover:bg-[#01859a] py-3 rounded-lg font-bold transition">
+                    Criar Campanha
                   </button>
                 </form>
-              </div>
 
-              {/* Lista de Campanhas e Edição In-Flight */}
-              <div className={`lg:col-span-2 p-6 rounded-2xl border ${bgCard} shadow-sm space-y-4`}>
-                <div className="flex justify-between items-center pb-2 border-b border-gray-800">
-                  <h3 className="text-base font-bold flex items-center gap-2">
-                    <Megaphone className="w-5 h-5 text-[#00EED0]" /> Campanhas Ativas ({campaigns.length})
-                  </h3>
-                  <span className="text-xs text-gray-400 font-medium">Permite atualização contínua em andamento</span>
-                </div>
-
-                <div className="space-y-3">
-                  {campaigns.map((c) => (
-                    <div 
-                      key={c.id} 
-                      className={`p-4 rounded-xl border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 ${
-                        darkMode ? 'bg-[#0B1120] border-gray-800 hover:border-[#0197AF]/60' : 'bg-gray-50 border-gray-200'
-                      } transition-all`}
-                    >
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-extrabold text-base">{c.name}</h4>
-                          <span className="text-xs font-semibold px-2 py-0.5 rounded bg-[#4B227A] text-white">
-                            {c.type}
-                          </span>
+                {/* Cards de Campanhas */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {campaigns.map(c => (
+                    <div key={c.id} className="bg-custom-dark border border-gray-800 rounded-xl p-6 relative">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <h4 className="font-bold text-lg">{c.name}</h4>
+                          <span className="text-xs bg-custom-purple px-2 py-1 rounded text-gray-200 mt-1 inline-block">{c.type}</span>
                         </div>
-                        <div className="flex flex-wrap gap-4 text-xs font-medium text-gray-400">
-                          <span>Orçamento: <strong className="text-gray-200">R$ {Number(c.budget).toLocaleString()}</strong></span>
-                          <span>Resultados: <strong className="text-gray-200">{c.results}</strong></span>
-                          <span>Custo/Res: <strong className="text-gray-200">R$ {Number(c.costPerResult || 0).toFixed(2)}</strong></span>
-                          <span>Alcance: <strong className="text-gray-200">{Number(c.reach).toLocaleString()}</strong></span>
+                        <div className="flex gap-2">
+                          <button onClick={() => setEditingCampaign(c)} className="text-gray-400 hover:text-white">✏️</button>
+                          <button onClick={() => handleDeleteCampaign(c.id)} className="text-red-400 hover:text-red-300">🗑️</button>
                         </div>
                       </div>
 
-                      <button 
-                        onClick={() => setEditingCampaign(c)}
-                        className="px-3 py-2 rounded-lg text-xs font-bold bg-[#0197AF]/20 text-[#0197AF] border border-[#0197AF]/40 hover:bg-[#0197AF] hover:text-white transition-all flex items-center gap-1.5"
+                      <div className="grid grid-cols-2 gap-4 text-sm mb-4">
+                        <div>
+                          <p className="text-gray-400 text-xs">Gasto / Orçamento</p>
+                          <p className="font-bold">R$ {Number(c.spent).toFixed(2)} / R$ {Number(c.budget).toFixed(2)}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-400 text-xs">Resultados / CPR</p>
+                          <p className="font-bold text-custom-mint">{c.results} (R$ {Number(c.costPerResult).toFixed(2)})</p>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => setInFlightCampaign(c)}
+                        className="w-full bg-gray-800 hover:bg-gray-700 text-custom-mint border border-[#00EED0]/30 py-2 rounded-lg text-sm font-semibold transition"
                       >
-                        <Edit3 className="w-3.5 h-3.5" /> Atualizar Métricas
+                        ⚡ Atualizar Dados Parciais (In-Flight)
                       </button>
                     </div>
                   ))}
                 </div>
               </div>
+            )}
 
-            </div>
-          )}
-
-          {/* TAB: CRM KANBAN */}
-          {activeTab === 'crm' && (
-            <div className="space-y-6">
-              
-              {/* Adicionar Lead Rápido */}
-              <div className={`p-4 rounded-2xl border ${bgCard} flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm`}>
-                <div className="flex items-center gap-2">
-                  <Users className="w-5 h-5 text-[#0197AF]" />
-                  <span className="font-bold text-sm">Gestão Comercial de Leads</span>
+            {activeTab === 'crm' && (
+              <div className="space-y-6">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-2xl font-bold">CRM Kanban & Pipeline de Vendas</h2>
                 </div>
 
-                <form onSubmit={handleAddLead} className="flex flex-col sm:flex-row w-full sm:w-auto gap-2">
-                  <input 
-                    type="text" 
-                    placeholder="Nome da empresa ou cliente..." 
+                {/* Adicionar Lead */}
+                <form onSubmit={handleAddLead} className="bg-custom-dark border border-gray-800 rounded-xl p-4 flex flex-wrap gap-4 items-center">
+                  <input
+                    type="text"
+                    placeholder="Nome do Lead / Empresa"
                     value={newLead.name}
-                    onChange={(e) => setNewLead({...newLead, name: e.target.value})}
-                    className={`px-3 py-2 rounded-xl text-xs font-semibold border outline-none w-full sm:w-64 ${
-                      darkMode ? 'bg-[#0B1120] border-gray-700 text-white focus:border-[#0197AF]' : 'bg-white border-gray-300 text-gray-900'
-                    }`}
+                    onChange={e => setNewLead({ ...newLead, name: e.target.value })}
+                    className="bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm flex-1 min-w-[200px]"
+                    required
                   />
-                  <select 
+                  <input
+                    type="text"
+                    placeholder="Telefone"
+                    value={newLead.phone}
+                    onChange={e => setNewLead({ ...newLead, phone: e.target.value })}
+                    className="bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm w-40"
+                  />
+                  <select
                     value={newLead.campaignId}
-                    onChange={(e) => setNewLead({...newLead, campaignId: e.target.value})}
-                    className={`px-3 py-2 rounded-xl text-xs font-semibold border outline-none ${
-                      darkMode ? 'bg-[#0B1120] border-gray-700 text-white' : 'bg-white border-gray-300'
-                    }`}
+                    onChange={e => setNewLead({ ...newLead, campaignId: e.target.value })}
+                    className="bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm"
                   >
-                    <option value="">Selecione a Campanha Origem</option>
-                    {campaigns.map(c => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
+                    {campaigns.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
-                  <button 
-                    type="submit" 
-                    className="px-4 py-2 rounded-xl text-xs font-extrabold text-[#02153D] bg-[#00EED0] hover:bg-[#00EED0]/90 transition-all flex items-center justify-center gap-1"
-                  >
-                    <Plus className="w-4 h-4" /> Cadastrar Lead
+                  <button type="submit" className="bg-[#0197AF] px-5 py-2.5 rounded-lg font-bold text-sm hover:bg-[#01859a]">
+                    + Novo Lead
                   </button>
                 </form>
-              </div>
 
-              {/* Colunas Kanban */}
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                {COLUMNS.map((colName) => {
-                  const columnLeads = leads.filter(l => l.status === colName);
-                  return (
-                    <div 
-                      key={colName}
-                      onDragOver={handleDragOver}
-                      onDrop={(e) => handleDrop(e, colName)}
-                      className={`rounded-2xl border flex flex-col h-[520px] ${
-                        darkMode ? 'bg-[#0E172A] border-gray-800' : 'bg-gray-100 border-gray-200'
-                      }`}
-                    >
-                      {/* Topo Coluna */}
-                      <div className="p-3.5 border-b border-gray-800 bg-[#02153D] rounded-t-2xl flex justify-between items-center">
-                        <h4 className="font-extrabold text-xs uppercase tracking-wider text-white">{colName}</h4>
-                        <span className="px-2 py-0.5 rounded-full text-xs font-extrabold bg-[#0197AF] text-white">
-                          {columnLeads.length}
-                        </span>
-                      </div>
+                {/* Colunas do Kanban */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  {['Lead Gerado', 'Qualificação', 'Proposta', 'Fechamento'].map(status => {
+                    const columnLeads = leads.filter(l => l.status === status);
+                    return (
+                      <div
+                        key={status}
+                        onDragOver={e => e.preventDefault()}
+                        onDrop={e => {
+                          const id = e.dataTransfer.getData('text/plain');
+                          if (id) handleMoveLead(id, status);
+                        }}
+                        className="bg-custom-dark border border-gray-800 rounded-xl p-4 min-h-[500px] flex flex-col"
+                      >
+                        <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-800">
+                          <h4 className="font-bold text-sm text-gray-200">{status}</h4>
+                          <span className="bg-custom-purple px-2 py-0.5 rounded text-xs font-bold text-white">
+                            {columnLeads.length}
+                          </span>
+                        </div>
 
-                      {/* Lista de Cards */}
-                      <div className="p-3 flex-1 overflow-y-auto space-y-3">
-                        {columnLeads.map(lead => (
-                          <div 
-                            key={lead.id}
-                            draggable
-                            onDragStart={(e) => handleDragStart(e, lead.id)}
-                            className={`p-4 rounded-xl border cursor-grab active:cursor-grabbing transition-all shadow-sm ${
-                              darkMode 
-                                ? 'bg-[#131C31] border-gray-800 hover:border-[#0197AF]' 
-                                : 'bg-white border-gray-200 hover:border-gray-400'
-                            }`}
-                          >
-                            <div className="flex justify-between items-start mb-2">
-                              <h5 className="font-bold text-sm text-gray-100">{lead.name}</h5>
-                              <span className="text-[10px] font-semibold text-gray-400">#{lead.id.slice(-4)}</span>
-                            </div>
-
-                            {lead.status === 'Fechamento' && (
-                              <div className="mt-2 p-2 rounded-lg bg-[#00EED0]/15 border border-[#00EED0]/30 text-xs font-bold text-[#00EED0] flex justify-between items-center">
-                                <span>{lead.dealType}:</span>
-                                <span>R$ {Number(lead.dealValue).toLocaleString()}</span>
+                        <div className="space-y-3 flex-1">
+                          {columnLeads.map(lead => (
+                            <div
+                              key={lead.id}
+                              draggable
+                              onDragStart={e => e.dataTransfer.setData('text/plain', lead.id)}
+                              className="bg-gray-900 border border-gray-700 hover:border-[#0197AF] p-4 rounded-lg cursor-grab active:cursor-grabbing transition relative group"
+                            >
+                              <div className="flex justify-between items-start">
+                                <h5 className="font-bold text-sm text-white">{lead.name}</h5>
+                                <div className="flex gap-1 opacity-80 group-hover:opacity-100">
+                                  <button onClick={() => setEditingLead(lead)} className="text-xs text-gray-400 hover:text-white">✏️</button>
+                                  <button onClick={() => handleDeleteLead(lead.id)} className="text-xs text-red-400 hover:text-red-300">🗑️</button>
+                                </div>
                               </div>
-                            )}
 
-                            {/* Mover Ações Rápidas em Mobile/Acessibilidade */}
-                            <div className="mt-3 pt-2 border-t border-gray-800/60 flex justify-between items-center text-[11px]">
-                              <span className="text-gray-400">Mover para:</span>
-                              <div className="flex gap-1">
-                                {COLUMNS.filter(c => c !== lead.status).map(c => (
-                                  <button 
-                                    key={c}
-                                    onClick={() => handleMoveLeadStatus(lead.id, c)}
-                                    className="px-1.5 py-0.5 rounded bg-gray-800 hover:bg-[#0197AF] text-gray-300 hover:text-white transition-all text-[10px]"
-                                  >
-                                    {c.slice(0, 4)}...
-                                  </button>
-                                ))}
-                              </div>
+                              <p className="text-xs text-gray-400 mt-1">{lead.phone || lead.email || 'Sem contato'}</p>
+
+                              {status === 'Fechamento' && (
+                                <div className="mt-3 pt-2 border-t border-gray-800 flex justify-between items-center text-xs">
+                                  <span className="text-custom-mint font-semibold">{lead.dealType}</span>
+                                  <span className="font-bold text-white">R$ {Number(lead.dealValue).toFixed(2)}</span>
+                                </div>
+                              )}
                             </div>
-                          </div>
-                        ))}
-
-                        {columnLeads.length === 0 && (
-                          <div className="h-32 border-2 border-dashed border-gray-800 rounded-xl flex items-center justify-center text-xs text-gray-500 font-medium">
-                            Arraste leads para cá
-                          </div>
-                        )}
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-            </div>
-          )}
-
-          {/* TAB: INSIGHTS */}
-          {activeTab === 'insights' && (
-            <div className="space-y-6">
-              
-              <div className={`p-6 rounded-2xl border ${darkMode ? 'bg-[#02153D] border-[#0197AF]/40' : 'bg-blue-900 text-white'}`}>
-                <div className="flex items-center gap-3 mb-2">
-                  <Sparkles className="w-6 h-6 text-[#00EED0]" />
-                  <h3 className="text-lg font-extrabold text-white">Canva AI Insights & Diagnósticos</h3>
+                    );
+                  })}
                 </div>
-                <p className="text-xs text-gray-300 max-w-2xl">
-                  Cruzamento automatizado entre o orçamento investido nas campanhas de tráfego e as conversões financeiras reais registradas no CRM Kanban.
-                </p>
               </div>
+            )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {aiInsights.map((insight, idx) => (
-                  <div key={idx} className={`p-5 rounded-2xl border ${bgCard} shadow-sm space-y-2`}>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-5 h-5 text-[#00EED0]" />
-                      <h4 className="font-bold text-sm text-[#00EED0]">{insight.title}</h4>
+            {activeTab === 'insights' && (
+              <div className="space-y-6">
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl">✨</span>
+                  <h2 className="text-2xl font-bold">Gemini AI Insights</h2>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-custom-dark border border-[#0197AF]/40 rounded-xl p-6 space-y-4">
+                    <h3 className="font-bold text-lg text-custom-mint">Diagnóstico de Saúde do Funil</h3>
+                    <div className="space-y-3 text-sm text-gray-300">
+                      <p>• <strong>Custo Por Resultado:</strong> O CPR médio atual está em <span className="text-white font-bold">R$ {avgCostPerResult.toFixed(2)}</span>.</p>
+                      <p>• <strong>ROAS Geral:</strong> Retorno atual de <span className="text-custom-mint font-bold">R$ {roasPerReal.toFixed(2)}</span> a cada R$ 1,00 investido.</p>
+                      <p>• <strong>Conversão Comercial:</strong> {crmConversionRate > 20 ? 'Excelente taxa de conversão!' : 'Atenção: Aumente o acompanhamento de propostas em aberto no Kanban.'}</p>
                     </div>
-                    <p className="text-xs text-gray-300 leading-relaxed">{insight.text}</p>
                   </div>
-                ))}
-              </div>
 
+                  <div className="bg-custom-dark border border-[#4B227A] rounded-xl p-6 space-y-4">
+                    <h3 className="font-bold text-lg text-purple-300">Recomendações Estratégicas Gemini</h3>
+                    <ul className="space-y-2 text-sm text-gray-300 list-disc list-inside">
+                      <li>Otimize os criativos das campanhas com CPR acima da média.</li>
+                      <li>Reforce abordagens no WhatsApp para leads parados na fase de Qualificação.</li>
+                      <li>Realoque orçamento para a campanha de maior retorno em vendas diretas.</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
+          </main>
+
+          {/* MODAL: ATUALIZAÇÃO PARCIAL IN-FLIGHT */}
+          {inFlightCampaign && (
+            <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+              <form onSubmit={handleUpdateInFlight} className="bg-custom-dark border border-gray-700 rounded-xl p-6 w-full max-w-md space-y-4">
+                <h3 className="font-bold text-lg text-custom-mint">⚡ Atualizar Métricas (In-Flight)</h3>
+                <p className="text-xs text-gray-400">{inFlightCampaign.name}</p>
+
+                <div>
+                  <label className="text-xs text-gray-300">Orçamento Já Consumido (R$)</label>
+                  <input
+                    type="number"
+                    value={inFlightCampaign.spent}
+                    onChange={e => setInFlightCampaign({ ...inFlightCampaign, spent: e.target.value })}
+                    className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm mt-1"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs text-gray-300">Resultados Parciais Obtidos</label>
+                  <input
+                    type="number"
+                    value={inFlightCampaign.results}
+                    onChange={e => setInFlightCampaign({ ...inFlightCampaign, results: e.target.value })}
+                    className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm mt-1"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs text-gray-300">Alcance Acumulado</label>
+                  <input
+                    type="number"
+                    value={inFlightCampaign.reach}
+                    onChange={e => setInFlightCampaign({ ...inFlightCampaign, reach: e.target.value })}
+                    className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm mt-1"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-3 pt-2">
+                  <button type="button" onClick={() => setInFlightCampaign(null)} className="px-4 py-2 text-sm text-gray-400">Cancelar</button>
+                  <button type="submit" className="bg-[#0197AF] px-4 py-2 rounded text-sm font-bold">Salvar Atualização</button>
+                </div>
+              </form>
             </div>
           )}
 
-        </section>
+          {/* MODAL: CONFIRMAR FECHAMENTO DE LEAD */}
+          {closingLeadModal && (
+            <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+              <form onSubmit={handleConfirmClosing} className="bg-custom-dark border border-gray-700 rounded-xl p-6 w-full max-w-md space-y-4">
+                <h3 className="font-bold text-lg text-custom-mint">🎉 Registrar Fechamento de Venda</h3>
+                <p className="text-xs text-gray-400">Lead: {closingLeadModal.name}</p>
 
-      </main>
+                <div>
+                  <label className="text-xs text-gray-300">Tipo de Venda</label>
+                  <select
+                    value={closingData.dealType}
+                    onChange={e => setClosingData({ ...closingData, dealType: e.target.value })}
+                    className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm mt-1"
+                  >
+                    <option value="Produto">Produto</option>
+                    <option value="Serviço">Serviço</option>
+                  </select>
+                </div>
 
-      {/* MODAL: ATUALIZAR MÉTRICAS EM ANDAMENTO (IN-FLIGHT UPDATES) */}
-      {editingCampaign && (
-        <div className="fixed inset-[#0] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className={`w-full max-w-md p-6 rounded-2xl border ${bgCard} shadow-2xl relative space-y-4`}>
-            <button 
-              onClick={() => setEditingCampaign(null)} 
-              className="absolute top-4 right-4 text-gray-400 hover:text-white"
-            >
-              <X className="w-5 h-5" />
-            </button>
+                <div>
+                  <label className="text-xs text-gray-300">Valor Total da Venda (R$)</label>
+                  <input
+                    type="number"
+                    value={closingData.dealValue}
+                    onChange={e => setClosingData({ ...closingData, dealValue: e.target.value })}
+                    className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm mt-1"
+                    placeholder="Ex: 2500"
+                    required
+                  />
+                </div>
 
-            <h3 className="text-base font-bold flex items-center gap-2">
-              <RefreshCw className="w-5 h-5 text-[#0197AF]" /> Atualizar Métricas da Campanha
-            </h3>
-            <p className="text-xs text-gray-400">
-              Insira os dados parciais acumulados até o momento para recalcular os gráficos e KPIs ao vivo.
-            </p>
+                <div className="flex justify-end gap-3 pt-2">
+                  <button type="button" onClick={() => setClosingLeadModal(null)} className="px-4 py-2 text-sm text-gray-400">Cancelar</button>
+                  <button type="submit" className="bg-[#0197AF] px-4 py-2 rounded text-sm font-bold">Confirmar Venda</button>
+                </div>
+              </form>
+            </div>
+          )}
 
-            <form onSubmit={handleUpdateCampaignInFlight} className="space-y-3">
-              <InputField 
-                label="Alcance Acumulado" 
-                type="number" 
-                value={editingCampaign.reach} 
-                onChange={(e) => setEditingCampaign({...editingCampaign, reach: e.target.value})}
-                darkMode={darkMode}
-              />
-              <InputField 
-                label="Resultados Acumulados" 
-                type="number" 
-                value={editingCampaign.results} 
-                onChange={(e) => setEditingCampaign({...editingCampaign, results: e.target.value})}
-                darkMode={darkMode}
-              />
-              <InputField 
-                label="Orçamento Consumido Atual (R$)" 
-                type="number" 
-                value={editingCampaign.budget} 
-                onChange={(e) => setEditingCampaign({...editingCampaign, budget: e.target.value})}
-                darkMode={darkMode}
-              />
-
-              <div className="pt-2 flex justify-end gap-2">
-                <button 
-                  type="button" 
-                  onClick={() => setEditingCampaign(null)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-gray-800 text-gray-300"
+          {/* MODAL: EDITAR LEAD */}
+          {editingLead && (
+            <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+              <form onSubmit={handleSaveEditLead} className="bg-custom-dark border border-gray-700 rounded-xl p-6 w-full max-w-md space-y-4">
+                <h3 className="font-bold text-lg text-custom-mint">✏️ Editar Lead</h3>
+                <input
+                  type="text"
+                  value={editingLead.name}
+                  onChange={e => setEditingLead({ ...editingLead, name: e.target.value })}
+                  className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm"
+                  required
+                />
+                <input
+                  type="text"
+                  value={editingLead.phone || ''}
+                  onChange={e => setEditingLead({ ...editingLead, phone: e.target.value })}
+                  className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm"
+                  placeholder="Telefone"
+                />
+                <select
+                  value={editingLead.status}
+                  onChange={e => setEditingLead({ ...editingLead, status: e.target.value })}
+                  className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm"
                 >
-                  Cancelar
-                </button>
-                <button 
-                  type="submit"
-                  className="px-4 py-2 rounded-xl text-xs font-extrabold text-[#02153D] bg-[#00EED0] hover:bg-[#00EED0]/90"
-                >
-                  Atualizar Dados Ao Vivo
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL: FECHAMENTO DE LEAD (REGISTRO FINANCEIRO) */}
-      {closingLeadModal && (
-        <div className="fixed inset-[#0] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className={`w-full max-w-md p-6 rounded-2xl border ${bgCard} shadow-2xl relative space-y-4`}>
-            <button 
-              onClick={() => setClosingLeadModal(null)} 
-              className="absolute top-4 right-4 text-gray-400 hover:text-white"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <h3 className="text-base font-bold text-[#00EED0] flex items-center gap-2">
-              <RevenueIcon className="w-5 h-5 text-[#00EED0]" /> Confirmar Fechamento de Venda
-            </h3>
-            <p className="text-xs text-gray-300">
-              O lead <strong>{closingLeadModal.name}</strong> avançou para a etapa de Fechamento. Registre os detalhes financeiros para calcular o ROI/ROAS.
-            </p>
-
-            <form onSubmit={handleConfirmClosingDeal} className="space-y-3">
-              <div>
-                <label className="block text-xs font-bold mb-1 text-gray-300">Tipo de Oferta Fechada</label>
-                <select 
-                  value={closingDealData.dealType}
-                  onChange={(e) => setClosingDealData({...closingDealData, dealType: e.target.value})}
-                  className={`w-full p-2.5 rounded-xl text-xs font-semibold border outline-none ${
-                    darkMode ? 'bg-[#0B1120] border-gray-700 text-white' : 'bg-white border-gray-300'
-                  }`}
-                >
-                  <option value="Produto">Venda de Produto</option>
-                  <option value="Serviço">Venda de Serviço</option>
+                  <option value="Lead Gerado">Lead Gerado</option>
+                  <option value="Qualificação">Qualificação</option>
+                  <option value="Proposta">Proposta</option>
+                  <option value="Fechamento">Fechamento</option>
                 </select>
-              </div>
+                <div className="flex justify-end gap-3">
+                  <button type="button" onClick={() => setEditingLead(null)} className="px-4 py-2 text-sm text-gray-400">Cancelar</button>
+                  <button type="submit" className="bg-[#0197AF] px-4 py-2 rounded text-sm font-bold">Salvar Alterações</button>
+                </div>
+              </form>
+            </div>
+          )}
 
-              <InputField 
-                label="Valor do Fechamento (R$)" 
-                type="number" 
-                placeholder="Ex: 3500.00"
-                value={closingDealData.dealValue} 
-                onChange={(e) => setClosingDealData({...closingDealData, dealValue: e.target.value})}
-                required
-                darkMode={darkMode}
-              />
-
-              <div className="pt-2 flex justify-end gap-2">
-                <button 
-                  type="button" 
-                  onClick={() => setClosingLeadModal(null)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-gray-800 text-gray-300"
-                >
-                  Cancelar
-                </button>
-                <button 
-                  type="submit"
-                  className="px-4 py-2 rounded-xl text-xs font-extrabold text-[#02153D] bg-[#00EED0] hover:bg-[#00EED0]/90"
-                >
-                  Salvar e Somar à Receita
-                </button>
-              </div>
-            </form>
-          </div>
+          {/* MODAL: EDITAR CAMPANHA */}
+          {editingCampaign && (
+            <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+              <form onSubmit={handleSaveEditCampaign} className="bg-custom-dark border border-gray-700 rounded-xl p-6 w-full max-w-md space-y-4">
+                <h3 className="font-bold text-lg text-custom-mint">✏️ Editar Campanha</h3>
+                <input
+                  type="text"
+                  value={editingCampaign.name}
+                  onChange={e => setEditingCampaign({ ...editingCampaign, name: e.target.value })}
+                  className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm"
+                  required
+                />
+                <input
+                  type="number"
+                  value={editingCampaign.budget}
+                  onChange={e => setEditingCampaign({ ...editingCampaign, budget: e.target.value })}
+                  className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm"
+                  placeholder="Orçamento Total"
+                  required
+                />
+                <div className="flex justify-end gap-3">
+                  <button type="button" onClick={() => setEditingCampaign(null)} className="px-4 py-2 text-sm text-gray-400">Cancelar</button>
+                  <button type="submit" className="bg-[#0197AF] px-4 py-2 rounded text-sm font-bold">Salvar Alterações</button>
+                </div>
+              </form>
+            </div>
+          )}
         </div>
-      )}
+      );
+    }
 
-    </div>
-  );
-}
-
-// COMPONENTES AUXILIARES
-const NavItem = ({ active, onClick, icon: Icon, label, badge }) => (
-  <button 
-    onClick={onClick}
-    className={`w-full flex items-center justify-between p-3 rounded-xl text-xs font-bold transition-all ${
-      active 
-        ? 'bg-[#0197AF] text-white shadow-md' 
-        : 'text-gray-300 hover:bg-blue-950/60 hover:text-white'
-    }`}
-  >
-    <div className="flex items-center gap-2.5">
-      <Icon className="w-4 h-4" />
-      <span>{label}</span>
-    </div>
-    {badge !== undefined && (
-      <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
-        active ? 'bg-[#02153D] text-[#00EED0]' : 'bg-blue-900 text-gray-200'
-      }`}>
-        {badge}
-      </span>
-    )}
-  </button>
-);
-
-const KPICard = ({ title, value, subtitle, icon: Icon, highlight, statusColor, darkMode }) => (
-  <div className={`p-3.5 rounded-2xl border transition-all flex flex-col justify-between ${
-    highlight 
-      ? 'bg-gradient-to-br from-[#02153D] to-[#4B227A] border-[#00EED0]/50 text-white shadow-md'
-      : darkMode 
-        ? 'bg-[#131C31] border-[#1E2D4A] text-gray-100' 
-        : 'bg-white border-gray-200 text-gray-900'
-  }`}>
-    <div className="flex justify-between items-start mb-2">
-      <span className="text-[10px] font-extrabold uppercase tracking-wider text-gray-400">{title}</span>
-      <span className={`p-1 rounded-lg ${highlight ? 'bg-[#00EED0]/20 text-[#00EED0]' : 'bg-gray-800/40 text-[#0197AF]'}`}>
-        <Icon className="w-3.5 h-3.5" />
-      </span>
-    </div>
-    <div className={`text-base sm:text-lg font-black tracking-tight ${statusColor || ''}`}>
-      {value}
-    </div>
-    <div className="text-[10px] font-medium text-gray-400 mt-1">
-      {subtitle}
-    </div>
-  </div>
-);
-
-const InputField = ({ label, darkMode, ...props }) => (
-  <div>
-    <label className={`block text-xs font-bold mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-      {label}
-    </label>
-    <input 
-      className={`w-full p-2.5 rounded-xl text-xs font-semibold border outline-none transition-all ${
-        darkMode 
-          ? 'bg-[#0B1120] border-gray-700 text-white focus:border-[#0197AF]' 
-          : 'bg-white border-gray-300 text-gray-900 focus:border-[#0197AF]'
-      }`}
-      {...props} 
-    />
-  </div>
-);
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
